@@ -1,0 +1,71 @@
+-----------		DB Setup	-----------
+
+export PATH=$PATH:/usr/local/mysql/bin/
+mysql -uroot -proot
+
+
+drop database order_db;
+create database order_db;
+
+drop database payment_db;
+create database payment_db;
+
+drop database inventory_db;
+create database inventory_db;
+
+
+use order_db;
+truncate table order_master;
+use payment_db;
+update user set balance=5000 where user_id=1;
+truncate table user_transaction;
+use inventory_db;
+update inventory set quantity=12 where inventory_id=1;
+truncate table inventory_transaction;
+
+use order_db;
+select * from order_master;
+
+use payment_db;
+select * from user;
+select * from user_transaction;
+
+use inventory_db;
+select * from inventory;
+select * from inventory_transaction;
+
+
+
+-----------		Kafka Setup		-----------
+
+cd ShobhiT/Softwares/kafka-2.7.0/bin
+./zookeeper-server-start.sh ../config/zookeeper.properties
+./kafka-server-start.sh ../config/server.properties
+
+
+./kafka-topics.sh --bootstrap-server localhost:9092 --delete --topic order-placed-events
+./kafka-topics.sh --bootstrap-server localhost:9092 --delete --topic order-process-events
+
+
+./kafka-topics.sh --bootstrap-server localhost:9092 --create --topic order-placed-events --replication-factor 1 --partitions 1
+./kafka-topics.sh --bootstrap-server localhost:9092 --create --topic order-process-events --replication-factor 1 --partitions 1
+
+
+./kafka-console-producer.sh --bootstrap-server=localhost:9092 --topic order-placed-events
+./kafka-console-producer.sh --bootstrap-server=localhost:9092 --topic order-process-events
+
+
+./kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic order-placed-events --from-beginning
+./kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic order-process-events --from-beginning
+
+
+
+-----------		URLs and Json		-----------
+
+{"orderId": 1, "userId": 1, "inventoryId": 1, "quantity": 5, "orderAmount": 500, "orderStatus": "Order_Created"}
+
+http://localhost:8081/OrderService/order/create
+{"userId": 1, "inventoryId": 1, "quantity": 5, "orderAmount": 500}
+
+http://localhost:8081/OrderService/order/all
+http://localhost:8081/OrderService/order/1

@@ -1,0 +1,30 @@
+server:
+  port: 8081
+  servlet:
+    context-path: /OrderService
+
+kafka:
+  server:
+    host: localhost
+    port: 9092
+  group:
+    id:
+      order: group_order
+  topic:
+    name:
+      order:
+        placed: order-placed-events
+        process: order-process-events
+
+spring:
+  application:
+    name: saga-order-orchestration
+  datasource:
+    driverClassName: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/order_db
+    username: root
+    password: root
+  jpa:
+    hibernate.ddl-auto: update
+    generate-ddl: true
+    show-sql: true

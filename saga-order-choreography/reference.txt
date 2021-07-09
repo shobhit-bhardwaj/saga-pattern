@@ -1,0 +1,84 @@
+-----------		DB Setup	-----------
+
+export PATH=$PATH:/usr/local/mysql/bin/
+mysql -uroot -proot
+
+
+drop database order_db;
+create database order_db;
+
+drop database payment_db;
+create database payment_db;
+
+drop database inventory_db;
+create database inventory_db;
+
+
+use order_db;
+truncate table order_master;
+use payment_db;
+update user set balance=5000 where user_id=1;
+truncate table user_transaction;
+use inventory_db;
+update inventory set quantity=12 where inventory_id=1;
+truncate table inventory_transaction;
+
+use order_db;
+select * from order_master;
+
+use payment_db;
+select * from user;
+select * from user_transaction;
+
+use inventory_db;
+select * from inventory;
+select * from inventory_transaction;
+
+
+
+-----------		Kafka Setup		-----------
+
+cd ShobhiT/Softwares/kafka-2.7.0/bin
+./zookeeper-server-start.sh ../config/zookeeper.properties
+./kafka-server-start.sh ../config/server.properties
+
+
+./kafka-topics.sh --bootstrap-server localhost:9092 --delete --topic order-events
+./kafka-topics.sh --bootstrap-server localhost:9092 --delete --topic payment-events
+./kafka-topics.sh --bootstrap-server localhost:9092 --delete --topic inventory-events
+
+
+./kafka-topics.sh --bootstrap-server localhost:9092 --create --topic order-events --replication-factor 1 --partitions 1
+./kafka-topics.sh --bootstrap-server localhost:9092 --create --topic payment-events --replication-factor 1 --partitions 1
+./kafka-topics.sh --bootstrap-server localhost:9092 --create --topic inventory-events --replication-factor 1 --partitions 1
+
+
+./kafka-console-producer.sh --bootstrap-server=localhost:9092 --topic order-events
+./kafka-console-producer.sh --bootstrap-server=localhost:9092 --topic payment-events
+./kafka-console-producer.sh --bootstrap-server=localhost:9092 --topic inventory-events
+
+
+./kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic order-events --from-beginning
+./kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic payment-events --from-beginning
+./kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic inventory-events --from-beginning
+
+
+
+-----------		URLs and Json		-----------
+
+http://localhost:8081/OrderService/order/create
+{"userId": 1, "inventoryId": 1, "quantity": 5, "orderAmount": 300}
+
+http://localhost:8081/OrderService/order/all
+http://localhost:8081/OrderService/order/1
+
+
+{"orderId": 1, "userId": 1, "inventoryId": 1, "quantity": 5, "orderAmount": 300, "orderStatus": "Order_Created"}
+{"orderId": 1, "userId": 1, "inventoryId": 1, "quantity": 5, "orderAmount": 300, "orderStatus": "Order_Cancel_Payment"}
+{"orderId": 1, "userId": 1, "inventoryId": 1, "quantity": 5, "orderAmount": 300, "orderStatus": "Order_Cancel_Inventory"}
+
+
+{"orderId":1,"transactionId":6,"amount":300.0,"paymentStatus":"Payment_Received"}
+
+{"orderId":1,"transactionId":6,"inventoryId":1,"quantity":5,"inventoryStatus":"Inventory_Available"}
+
